@@ -1,6 +1,7 @@
 ﻿using Solid.Arduino;
 using Solid.Arduino.Firmata;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 
@@ -10,6 +11,9 @@ namespace PendantNamespace
     public class Pendant : IDisposable
     {
         public InputStates Inputs = new InputStates();
+            
+        private Dictionary<int, long> analogInputsCashe = new Dictionary<int,long>();
+
         private ArduinoSession session;
         private ISerialConnection connection;
 
@@ -119,6 +123,21 @@ namespace PendantNamespace
             }
 
 
+            if (analogInputsCashe.ContainsKey(eventArgs.Value.Channel))
+            {
+                if (analogInputsCashe[eventArgs.Value.Channel] - 1 > eventArgs.Value.Level || analogInputsCashe[eventArgs.Value.Channel] + 1 < eventArgs.Value.Level)
+                {
+                    analogInputsCashe[eventArgs.Value.Channel] = eventArgs.Value.Level;
+                    Console.WriteLine($"Analog Ch: {eventArgs.Value.Channel} Val: {eventArgs.Value.Level}");
+                }
+            }
+            else
+            {
+                analogInputsCashe[eventArgs.Value.Channel] = eventArgs.Value.Level;
+                Console.WriteLine($"Analog Ch: {eventArgs.Value.Channel} Val: {eventArgs.Value.Level}");
+            }
+
+
             //Console.WriteLine(sender);
             if (eventArgs.Value.Channel == 0)
             {
@@ -157,7 +176,6 @@ namespace PendantNamespace
                 Inputs.FeedPC = val;
             }
 
-            //Console.WriteLine($"Pin: {eventArgs.Value.Channel} Val: {eventArgs.Value.Level}");
         }
 
 
@@ -166,6 +184,11 @@ namespace PendantNamespace
         {
             //Console.WriteLine(sender);
             var port = eventArgs.Value.Port;
+
+            string binaryString = Convert.ToString(eventArgs.Value.Pins, 2); // Convert to binary
+            binaryString = binaryString.PadLeft(9, '0');
+            Console.WriteLine($"Digital Port: {port} Pins : {binaryString}");
+
 
             if (port == 0 && eventArgs.Value.IsSet(2))
             {
@@ -276,6 +299,7 @@ namespace PendantNamespace
                     Inputs.MpgDirection = MPGDirecton.NONE;
                 }
             }
+
 
 
             /*Console.Write($"port: {eventArgs.Value.Port} Pins 0: {(eventArgs.Value.IsSet(0) ? 'X' : ' ') }");

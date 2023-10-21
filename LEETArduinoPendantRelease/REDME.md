@@ -3,6 +3,9 @@
 A UCCNC Plugin to receive commands from an Arduino Nano-powered CNC Pendant
 Uses Solid.Arduino library to talk to Arduino Nano
 
+## DevConsoleApp
+- use this diagnistics app to check if all pins are properly detected
+
 ## The full list of components, pictures and videos used can be found here:
 https://zero-divide.net/?article_id=5319_custom-cnc-pendant-project
 
