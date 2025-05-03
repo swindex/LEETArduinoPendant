@@ -23,10 +23,11 @@ namespace LEETArduinoPendant
         public JogAxis curr_jog_axis = JogAxis.NONE;
         public bool curr_jog_dir = false;
 
+        internal Settings Settings;
 
-        public UCCNCplugin()
+        private void SettingsChanged()
         {
-
+            // Handle the event
         }
 
         public Plugininterface.Entry.Pluginproperties Getproperties_event(Plugininterface.Entry.Pluginproperties Properties)
@@ -40,6 +41,10 @@ namespace LEETArduinoPendant
         public void Init_event(Plugininterface.Entry UC)
         {
             this.UC = UC;
+            
+            this.Settings = new Settings(UC);
+            this.Settings.SettingsChanged += SettingsChanged;
+
             //Console.WriteLine($"Init_event");
             try
             {
@@ -54,6 +59,11 @@ namespace LEETArduinoPendant
             
             
 
+        }
+
+        public void Configure_event() {
+            var CForm = new SettingsForm(this);
+            CForm.ShowDialog();
         }
 
         public void Init()
@@ -205,8 +215,8 @@ namespace LEETArduinoPendant
         }
 
         void JogWheel(int steps) {
-
-            double dist = Math.Abs(steps * 0.0001 * Math.Pow(10, (pen.Inputs.MpgStepMultiplier - 1)));
+            var unit_multiplier = this.Settings.Imperial ? 1 : 10;
+            double dist = Math.Abs(steps * 0.0001 * unit_multiplier * Math.Pow(10, (pen.Inputs.MpgStepMultiplier - 1)));
 
             var JogFeedPC = UC.Getfielddouble(false, 913);
             if (JogFeedPC > 100) JogFeedPC = 100;
@@ -214,9 +224,6 @@ namespace LEETArduinoPendant
             //Console.WriteLine($"Handwheel dist {dist}");
 
             UC.AddLinearMoveRel(Convert.ToInt32(pen.Inputs.JogAxis) - 1, dist, Math.Abs(steps), JogFeedPC, steps < 0);
-
-   
-
         }
 
         private void onButtonUp(object sender, PendantButtonEventArgs e)
